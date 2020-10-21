@@ -7,8 +7,7 @@
 
 ## Basic-level skills
 
-Access your remote machine with the most basic command (The first > denotes that 
-the user is a regular user):
+Access your remote machine with the most basic command:
 
 ```bash
 (loc:~) ssh -i ~/.ssh/remotesshkey.pem linux1@xxx.xxx.xxx.xxx
@@ -36,24 +35,24 @@ the following commands and see if you can answer the upcoming questions:
 
 Here are the questions:
 
-a. How much "free" disk space you have? (hint: look for the device `/dev/sda*`)
-b. What is the maximal CPU frequency we can reach on this machine?
-c. What OS the machine is running?
+1. How much "free" disk space do you have? (hint: look for the device `/dev/sda*`)
+2. What is the maximal CPU frequency we can reach on this machine?
+3. What OS the machine is running?
 
 ### Becoming the super user
 
-To be able to (globally) install any application/program on Red HAt sysytems, we use
+To be able to (globally) install any application/program on Red Hat systems, we use
 the `yum` command.
 To install, say vim (a text editor):
 
 ```bash
-yum install vim
+(rem:~) yum install vim
 ```
 
 That doesn't work, huh! Regular users (eg. `linux1`) can't install packages system-wide.
 That's one action among many that only special user accounts have access to.
 
-The super user on a Red Had system (and all other Linux distributions) is called `root`.
+The super user on a *Nix systems is called `root` (much like the administrator account on Windows).
 
 You can become root on the remote machine by executing the following command:
 
@@ -61,7 +60,7 @@ You can become root on the remote machine by executing the following command:
 (rem:~) sudo -s
 ```
 When you want to get back to your regular user (`linux1`), just hit `Ctrl-D`, or type
-(the first `$` sign indicates that the following command is run as root)
+(the first `$` sign indicates that the following command is run as root):
 
 ```bash
 (rem:~)$ exit
@@ -72,10 +71,11 @@ You should now be able to install a couple of recommended packages:
 ```bash
 (rem:~) sudo -s
 (rem:~)$ yum install -y vim nano tmux
+(rem:~)$ exit
 ```
-> Vim and Nano are "text editors". Vim is more suited for the advanced users; Linux-beginners
-> should definitely stick the more "intuitive" Nano (Just replace vim with nano in the following
-> commands).
+> Vim and Nano are "text editors". Vim is more suited for advanced users; Linux-beginners
+> should definitely stick with the more "intuitive" Nano (Just replace vim with nano in the
+> following commands).
 
 > Tmux is a useful application when it comes to leaving your simulations running even after
 > logging out of the SSH session.
@@ -90,7 +90,7 @@ in the background.
 The most basic method to attach to an interactive shell on that container is to run (as root):
 
 ```bash
-$ docker -it openfoam bash
+$ docker exec -it openfoam bash
 ```
 
 where:
@@ -100,16 +100,24 @@ where:
 
 You'll be presented with a prompt similar to this one:
 ```bash
-(of@containerid:~/OpenFOAM/of-7/run)$ __
+(root@containerid:~)$ __
 ```
 This tells us that:
-- We are acting as the `of` user inside the container with the unique id `containerid`.
-- the current directory is `/home/of/OpenFOAM/of-7/run`
+- We are logged in as the `root` user inside the container with the unique id `containerid`.
+- the current directory is `/root`: the home directory of the root user
 
 Try to run the same commands we ran back in the **Basic system commands** section and
 answer the same questions.
 
-> At this point, you should press Ctrl-D multiple times until you leave the **SSH session**
+- Inside the container, verify that you have OpenFOAM up and running by executing, for example,
+```bash
+(con:~)$ foamVersion
+```
+
+> The container has the `OpenFOAM-dev` version (Latest version of the software; -patched- OpenFOAM-8
+> at the time of writing this document).
+
+At this point, you should press Ctrl-D multiple times until you leave the **SSH session**
 
 ## Intermediate-level skills
 
@@ -123,9 +131,12 @@ machine to your local one. This should happen when you initiate the SSH session:
 
 > You should alias the previous command to `l1c` or something
 
-Now if you run `jupyter notebook --no-browser` inside the container on the remote machine, 
-and then go to
-`http://localhost:8888/?token=....` (the link is provided in the output of the previous command)
+Now if you run 
+```bash
+(con:/) jupyter-notebook --allow-root --ip=$(hostname -I)
+```
+inside the **container** on the remote machine, and then go to
+`http://localhost:8888/?token=....` (the tocken is provided in the output of the previous command)
 in your local browser, you should be able to access the jupyter server.
 
 Try it out, it's fun.
@@ -133,7 +144,7 @@ Try it out, it's fun.
 One other thing an intermediate user would attempt to do, is to mount a directory of the remote 
 machine directly on his/her local machine using, for example, the SSHFS tool.
 
-Simply put, 
+Simply put (assuming `sshfs` is installed on your local machine),
 ```bash
 > mkdir -p ~/ResEngCourse/myproject    # Create a local directory to mount things on
 > sshfs -o IdentityFile=~/.ssh/remotesshkey.pem\
@@ -155,7 +166,7 @@ started by that particular session get stopped. To prevent this from happening:
   `sudo yum install -y tmux`
 - Instead of running the command you want to be persistent in the shell directly, start tmux 
   and run it there.
-- Press `Ctrl-b` then `d` to detach from the tmux session
+- Press `Ctrl-b` then `d` to "detach" from the tmux session
 - You can leave the SSH session now, the process your started on the tmux session
   won't be killed
 - If you want to get back to that process, just type `tmux attach`.
@@ -192,7 +203,7 @@ Also, don't forget to restart the SSH service
 (loc/rem:~) sudo systemctl restart sshd
 ```
 
-To engage in an X-Forwarding-Enabled SSH session, you can run (whithout 8888-port forwarding):
+To engage in an X-Forwarding-Enabled SSH session, you can run (whithout the 8888-port forwarding):
 ```bash
 (loc:~) ssh -XC -c aes128-gcm@openssh.com \
       -i ~/.ssh/testmachine.pem linux1@165.165.xxx.xxx
