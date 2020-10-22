@@ -87,35 +87,51 @@ If you have followed what we did in the unit, the script we used to install dock
 and create our OpenFOAM container should have instantiated the container and left it running
 in the background.
 
-The most basic method to attach to an interactive shell on that container is to run (as root):
+The most basic method to attach to an interactive shell on that container is to run:
 
 ```bash
-$ docker exec -it openfoam bash
+(rem:~) docker exec -it openfoam sudo su
 ```
 
 where:
 - `-it` tells docker to create an "interactive terminal"
 - `openfoam` is the name of the target container
-- `bash` is the command to run: the shell command itself!
+- `sudo` is the command to run: logs into a shell as the (default) `of` user without having to type the password!
 
 You'll be presented with a prompt similar to this one:
 ```bash
-(root@containerid:~)$ __
+(of@containerid:~) __
 ```
 This tells us that:
 - We are logged in as the `root` user inside the container with the unique id `containerid`.
-- the current directory is `/root`: the home directory of the root user
+- the current directory is `/home/of`: the home directory of the `of` user
 
 Try to run the same commands we ran back in the **Basic system commands** section and
 answer the same questions.
 
 - Inside the container, verify that you have OpenFOAM up and running by executing, for example,
 ```bash
-(con:~)$ foamVersion
+(of@con:~) foamVersion
 ```
 
 > The container has the `OpenFOAM-dev` version (Latest version of the software; -patched- OpenFOAM-8
 > at the time of writing this document).
+
+- Next let's actually create a directory where we'll keep all of our OpenFOAM cases:
+
+```bash
+(of@con:~) mkdir -p $FOAM_RUN
+```
+
+The `$FOAM_RUN` environment variable points to a special directory inside the container: 
+`/home/eof/OpenFOAM/of-dev/run`, and we call it the "run" directory.
+
+This particular directory is hared out with the remote system (via: `/home/linux1/run`). Any changes
+you make to `/home/linux1/run` on the remote machine (outside the container), will be reflected immediatly
+inside the container at the location `$FOAM_RUN`.
+
+> You can also share `/home/linux1/run` on the remote system with your local one directly, easing case file
+> manipulation inside the container from your local machine.
 
 At this point, you should press Ctrl-D multiple times until you leave the **SSH session**
 
@@ -159,6 +175,8 @@ option than relying on your text editor's ability to deal with remote files. Now
 can use your local tools to edit these files!
 
 To unmout, run `fusermount -u ~/ResEngCourse/myproject`. That's it.
+
+> Practice what you've just learned by remotely mounting `/home/linux1/run` on your local system
 
 In addition, you may have noticed that once you leave the SSH session, all processes
 started by that particular session get stopped. To prevent this from happening:
